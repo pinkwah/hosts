@@ -2,6 +2,7 @@
 {
   imports = [
     ./hardware-configuration.nix
+    ./mounts.nix
   ];
 
   # Workaround for https://github.com/NixOS/nix/issues/8502

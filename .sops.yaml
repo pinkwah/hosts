@@ -1,0 +1,10 @@
+keys:
+  - &admin_zohar 1F9D38407F1BFAD1FE3C78F4A32FDE70EBD85C34
+  - &server_hetzner-fi-1 age1x55697uhvdr39k8fmq3yyvwyj8gw8jtyufxp4ek30tgzusdrtgmq9g0lks
+
+creation_rules:
+  - path_regex: hetzner-fi-1\/secrets\.yaml$
+    pgp:
+      - *admin_zohar
+    age:
+      - *server_hetzner-fi-1
