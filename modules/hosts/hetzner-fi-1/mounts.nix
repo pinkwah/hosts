@@ -1,5 +1,4 @@
 {
-  config,
   pkgs,
   ...
 }:
@@ -22,7 +21,7 @@
       wants = [ "network-online.target" ];
       what = "https://u503778.your-storagebox.de";
       where = "/mnt/store";
-      options = "x-systemd.automount";
+      options = "x-systemd.automount,uid=995,gid=993,file_mode=0660,dir_mode=0770";
       type = "davfs";
     }
   ];
