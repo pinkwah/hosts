@@ -1,1 +1,8 @@
+# Nix
 .direnv
+result
+result-*
+
+# Images
+*.raw
+*.raw.zstd

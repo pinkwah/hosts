@@ -9,6 +9,16 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    hcloud-upload-image = {
+      url = "github:apricote/hcloud-upload-image";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -35,7 +45,7 @@
         imports = [ inputs.treefmt-nix.flakeModule ];
 
         perSystem =
-          { pkgs, ... }:
+          { pkgs, system, ... }:
           {
             devShells.default = pkgs.mkShell {
               packages = with pkgs; [
@@ -43,7 +53,15 @@
                 nh
                 nixos-rebuild-ng
                 nixos-generators
+                hcloud
+                zstd
+
+                inputs.hcloud-upload-image.packages.${system}.default
               ];
+
+              shellHook = ''
+                just --list
+              '';
             };
 
             treefmt = {
