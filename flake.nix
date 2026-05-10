@@ -76,7 +76,7 @@
 
         flake = {
           nixosConfigurations = {
-            hetzner-fi-1 = import ./modules/hosts/hetzner-fi-1 { inherit self inputs; };
+            phobos = import ./modules/hosts/phobos { inherit self inputs; };
           };
         };
       }

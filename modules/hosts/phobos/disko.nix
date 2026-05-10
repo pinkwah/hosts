@@ -1,4 +1,4 @@
-{ config, builtins, ... }:
+{ ... }:
 
 {
   disko.devices = {

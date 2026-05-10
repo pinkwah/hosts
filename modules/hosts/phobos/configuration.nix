@@ -1,8 +1,8 @@
-{ config, pkgs, ... }:
+{ ... }:
 {
   imports = [
     ./hardware-configuration.nix
-    ./mounts.nix
+    ./nextcloud.nix
   ];
 
   nixpkgs.config.allowUnfree = true;
@@ -12,7 +12,7 @@
 
   boot.tmp.cleanOnBoot = true;
   zramSwap.enable = true;
-  networking.hostName = "hetzner-fi-1";
+  networking.hostName = "phobos";
   networking.domain = "hosts.zohar.no";
   services.openssh.enable = true;
   users.users.root.openssh.authorizedKeys.keys = [
@@ -30,11 +30,6 @@
   ];
   system.stateVersion = "23.11";
 
-  sops.secrets.nextcloud = {
-    mode = "0600";
-    path = "/etc/nextcloud-admin-pass";
-  };
-
   sops.secrets.onlyoffice-security-nonce-file = {
     mode = "0600";
     path = "/etc/onlyoffice-security-nonce-file";
@@ -46,51 +41,11 @@
 
   services.nginx = {
     virtualHosts = {
-      "sky.zohar.no" = {
-        forceSSL = true;
-        enableACME = true;
-      };
-
       "docs.zohar.no" = {
         forceSSL = true;
         enableACME = true;
       };
     };
-  };
-
-  services.nextcloud = {
-    enable = true;
-    package = pkgs.nextcloud33;
-    # datadir = "/mnt/store";
-    hostName = "sky.zohar.no";
-    https = true;
-    database.createLocally = true;
-
-    # appstoreEnable = false;
-    extraApps = with config.services.nextcloud.package.packages.apps; {
-      inherit
-        calendar
-        contacts
-        deck
-        mail
-        notes
-        onlyoffice
-        tasks
-        ;
-    };
-    extraAppsEnable = true;
-
-    config = {
-      dbtype = "pgsql";
-      adminuser = "admin";
-      adminpassFile = "/etc/nextcloud-admin-pass";
-    };
-  };
-
-  fileSystems."${config.services.nextcloud.home}/data" = {
-    device = "/mnt/store";
-    fsType = "none";
-    options = [ "bind" ];
   };
 
   services.onlyoffice = {
@@ -102,7 +57,6 @@
   security.acme = {
     acceptTerms = true;
     certs = {
-      "sky.zohar.no".email = "letsencrypt@zohar.no";
       "docs.zohar.no".email = "letsencrypt@zohar.no";
     };
   };
