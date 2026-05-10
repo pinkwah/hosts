@@ -3,9 +3,10 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
+    flake-parts.url = "github:hercules-ci/flake-parts";
 
-    flake-parts = {
-      url = "github:hercules-ci/flake-parts";
+    deploy-rs = {
+      url = "github:serokell/deploy-rs";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -58,6 +59,7 @@
                 zstd
 
                 inputs.hcloud-upload-image.packages.${system}.default
+                inputs.deploy-rs.packages.${system}.default
               ];
 
               shellHook = ''
@@ -78,6 +80,19 @@
           nixosConfigurations = {
             phobos = import ./modules/hosts/phobos { inherit self inputs; };
           };
+
+          deploy.nodes.phobos = {
+            hostname = "phobos.hosts.zohar.no";
+            profiles.system = {
+              sshUser = "root";
+              user = "root";
+              path = inputs.deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.phobos;
+            };
+          };
+
+          checks = builtins.mapAttrs (
+            _system: deployLib: deployLib.deployChecks self.deploy
+          ) inputs.deploy-rs.lib;
         };
       }
     );
