@@ -1,4 +1,4 @@
-{ ... }:
+{ config, ... }:
 {
   imports = [
     ./hardware-configuration.nix
@@ -21,12 +21,6 @@
   ];
   system.stateVersion = "25.11";
 
-  sops.secrets.onlyoffice-security-nonce-file = {
-    mode = "0600";
-    path = "/etc/onlyoffice-security-nonce-file";
-    owner = "nginx";
-  };
-
   users.users.nextcloud.uid = 995;
   users.groups.nextcloud.gid = 993;
 
@@ -35,14 +29,36 @@
       "docs.zohar.no" = {
         forceSSL = true;
         enableACME = true;
+
+        locations."/" = {
+          proxyPass = "http://[::1]:${toString config.services.collabora-online.port}";
+          proxyWebsockets = true;
+        };
       };
     };
   };
 
-  services.onlyoffice = {
+  # https://diogotc.com/blog/collabora-nextcloud-nixos/#deploy-collabora-with-nixos
+  services.collabora-online = {
     enable = true;
-    hostname = "docs.zohar.no";
-    securityNonceFile = "/etc/onlyoffice-security-nonce-file";
+    settings = {
+      ssl = {
+        enable = false;
+        termination = true;
+      };
+
+      net = {
+        listen = "loopback";
+        post_allow.host = [ "::1" ];
+      };
+
+      storage.wopi = {
+        "@allow" = true;
+        host = [ "sky.zohar.no" ];
+      };
+
+      server_name = "docs.zohar.no";
+    };
   };
 
   security.acme = {

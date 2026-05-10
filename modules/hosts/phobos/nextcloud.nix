@@ -37,9 +37,8 @@
         calendar
         contacts
         deck
-        mail
         notes
-        onlyoffice
+        richdocuments
         tasks
         ;
     };
