@@ -6,3 +6,6 @@ result-*
 # Images
 *.raw
 *.raw.zstd
+
+# Other secrets
+key/

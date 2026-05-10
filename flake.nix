@@ -54,6 +54,7 @@
                 nixos-rebuild-ng
                 nixos-generators
                 hcloud
+                ssh-to-age
                 zstd
 
                 inputs.hcloud-upload-image.packages.${system}.default
