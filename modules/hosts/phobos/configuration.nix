@@ -18,6 +18,8 @@
   users.users.root.openssh.authorizedKeys.keys = [
     # RosaMain
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK7wrK4sA6acnwKJ9D6OUMajkvaax9+3PyWUmTxrtnHx"
+    # RosaAsus
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIANc9pIqHgW3scSpJl9P1uRJy5GR1qHMf/hWLchzv7za"
   ];
   system.stateVersion = "25.11";
 
