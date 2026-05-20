@@ -56,26 +56,14 @@
     enableACME = true;
   };
 
-  systemd.mounts = [
-    {
-      description = "Hetzner Storage Box 'deimos'";
-      after = [ "network-online.target" ];
-      wants = [ "network-online.target" ];
-      what = "https://u503778.your-storagebox.de";
-      where = "${config.services.nextcloud.home}/data";
-      options = "x-systemd.automount,uid=995,gid=993,file_mode=0660,dir_mode=0770";
-      type = "davfs";
-    }
-  ];
-
-  systemd.automounts = [
-    {
-      description = "Hetzner Storage Box 'deimos' automount";
-      where = "${config.services.nextcloud.home}/data";
-      wantedBy = [ "multi-user.target" ];
-      automountConfig = {
-        TimeoutIdleSec = "2m";
-      };
-    }
-  ];
+  fileSystems."${config.services.nextcloud.home}/data" = {
+    device = "https://u503778.your-storagebox.de";
+    fsType = "davfs";
+    options = [
+      "uid=995"
+      "gid=993"
+      "rw"
+      "x-systemd.automount"
+    ];
+  };
 }

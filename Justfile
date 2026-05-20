@@ -47,4 +47,4 @@ deploy $host: (copy host)
 
 # Copy NixOS configuration to a host without switching to it
 copy $host:
-  rsync -ar --delete --chown=root:root ./ root@{{host}}:/etc/nixos/
+  rsync -ar --exclude .git --filter ':- .gitignore' --delete --chown=root:root ./ root@{{host}}:/etc/nixos/
