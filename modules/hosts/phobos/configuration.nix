@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, pkgs, ... }:
 {
   imports = [
     ./hardware-configuration.nix
@@ -6,9 +6,6 @@
   ];
 
   nixpkgs.config.allowUnfree = true;
-
-  # Workaround for https://github.com/NixOS/nix/issues/8502
-  services.logrotate.checkConfig = false;
 
   boot.tmp.cleanOnBoot = true;
   zramSwap.enable = true;
@@ -24,6 +21,14 @@
   users.groups.nextcloud.gid = 993;
 
   services = {
+    cockpit = {
+      enable = true;
+      plugins = with pkgs; [
+        cockpit-files
+        cockpit-podman
+      ];
+    };
+
     openssh = {
       enable = true;
       openFirewall = false;
@@ -41,6 +46,10 @@
           proxyWebsockets = true;
         };
       };
+    };
+
+    tailscaleAuth = {
+      enable = true;
     };
   };
 

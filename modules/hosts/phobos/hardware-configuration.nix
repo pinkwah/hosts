@@ -23,12 +23,16 @@
 
   services.resolved = {
     enable = true;
-    dnssec = "true";
-    domains = [ "~." ];
-    dnsovertls = "true";
-    fallbackDns = [
-      "1.1.1.1"
-      "1.0.0.1"
-    ];
+    settings = {
+      Resolve = {
+        Domains = [ "~." ];
+        DNSOverTLS = true;
+        DNSSEC = true;
+        FallbackDNS = [
+          "1.1.1.1"
+          "1.0.0.1"
+        ];
+      };
+    };
   };
 }

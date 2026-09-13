@@ -69,10 +69,12 @@
 
             treefmt = {
               projectRootFile = "flake.nix";
-              programs.nixfmt.enable = true;
-              programs.nixfmt.package = pkgs.nixfmt-rfc-style;
-              programs.deadnix.enable = true;
-              programs.shellcheck.enable = true;
+
+              programs = {
+                nixfmt.enable = true;
+                deadnix.enable = true;
+                shellcheck.enable = true;
+              };
             };
           };
 
@@ -82,7 +84,7 @@
           };
 
           deploy.nodes.phobos = {
-            hostname = "phobos.hosts.zohar.no";
+            hostname = "phobos.tail0f913d.ts.net";
             profiles.system = {
               sshUser = "root";
               user = "root";
