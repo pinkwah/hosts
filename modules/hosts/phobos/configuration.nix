@@ -12,9 +12,6 @@
 
   boot.tmp.cleanOnBoot = true;
   zramSwap.enable = true;
-  networking.hostName = "phobos";
-  networking.domain = "hosts.zohar.no";
-  services.openssh.enable = true;
   users.users.root.openssh.authorizedKeys.keys = [
     # RosaMain
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK7wrK4sA6acnwKJ9D6OUMajkvaax9+3PyWUmTxrtnHx"
@@ -25,6 +22,13 @@
 
   users.users.nextcloud.uid = 995;
   users.groups.nextcloud.gid = 993;
+
+  services = {
+    openssh = {
+      enable = true;
+      openFirewall = false;
+    };
+  };
 
   services.nginx = {
     virtualHosts = {
@@ -63,6 +67,11 @@
     };
   };
 
+  services.tailscale = {
+    enable = true;
+    openFirewall = true;
+  };
+
   security.acme = {
     acceptTerms = true;
     certs = {
@@ -70,8 +79,20 @@
     };
   };
 
-  networking.firewall.allowedTCPPorts = [
-    80
-    443
-  ];
+  networking = {
+    hostName = "phobos";
+    domain = "hosts.zohar.no";
+
+    nftables.enable = true;
+
+    firewall = {
+      allowedTCPPorts = [
+        80
+        443
+      ];
+
+      trustedInterfaces = [ "tailscale0" ];
+    };
+  };
+
 }
