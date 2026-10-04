@@ -1,11 +1,25 @@
-{ config, pkgs, ... }:
+{
+  config,
+  pkgs,
+  inputs,
+  ...
+}:
 {
   imports = [
     ./hardware-configuration.nix
     ./nextcloud.nix
   ];
 
-  nixpkgs.config.allowUnfree = true;
+  nixpkgs = {
+    config.allowUnfree = true;
+
+    overlays = [
+      # Use memos from unstable nixpkgs branch
+      (final: prev: {
+        inherit (import inputs.nixpkgs-unstable { inherit (pkgs) system; }) memos;
+      })
+    ];
+  };
 
   boot.tmp.cleanOnBoot = true;
   zramSwap.enable = true;
@@ -33,6 +47,15 @@
       enable = true;
       openFirewall = false;
     };
+
+    memos = {
+      enable = true;
+      settings = {
+        MEMOS_MODE = "prod";
+        MEMOS_PORT = "5230";
+        MEMOS_INSTANCE_URL = "http://wah.pink/memos";
+      };
+    };
   };
 
   services.nginx = {
@@ -43,6 +66,16 @@
 
         locations."/" = {
           proxyPass = "http://[::1]:${toString config.services.collabora-online.port}";
+          proxyWebsockets = true;
+        };
+      };
+
+      "wah.pink" = {
+        forceSSL = true;
+        enableACME = true;
+
+        locations."/memos" = {
+          proxyPass = "https://[::1]:${config.services.memos.settings.MEMOS_PORT}";
           proxyWebsockets = true;
         };
       };
