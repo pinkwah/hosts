@@ -16,7 +16,7 @@
     overlays = [
       # Use memos from unstable nixpkgs branch
       (final: prev: {
-        inherit (import inputs.nixpkgs-unstable { inherit (pkgs) system; }) memos;
+        inherit (import inputs.nixpkgs-unstable { inherit (prev.stdenv.hostPlatform) system; }) memos;
       })
     ];
   };
@@ -54,6 +54,7 @@
         MEMOS_MODE = "prod";
         MEMOS_PORT = "5230";
         MEMOS_INSTANCE_URL = "http://wah.pink/memos";
+        MEMOS_DATA = config.services.memos.dataDir;
       };
     };
   };
