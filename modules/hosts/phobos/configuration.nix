@@ -78,6 +78,11 @@
         locations."/memos" = {
           proxyPass = "http://[::1]:${config.services.memos.settings.MEMOS_PORT}";
           proxyWebsockets = true;
+          extraConfig = ''
+            proxy_set_header Host $host;
+            proxy_set_header X-Forwarded-Host $host;
+            proxy_set_header X-Forwarded-Proto $scheme;
+          '';
         };
       };
     };
