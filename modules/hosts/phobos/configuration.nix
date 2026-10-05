@@ -53,7 +53,7 @@
       settings = {
         MEMOS_MODE = "prod";
         MEMOS_PORT = "5230";
-        MEMOS_INSTANCE_URL = "http://wah.pink/memos";
+        MEMOS_INSTANCE_URL = "https://wah.pink/memos";
         MEMOS_DATA = config.services.memos.dataDir;
       };
     };
