@@ -76,7 +76,7 @@
         enableACME = true;
 
         locations."/memos" = {
-          proxyPass = "https://[::1]:${config.services.memos.settings.MEMOS_PORT}";
+          proxyPass = "http://[::1]:${config.services.memos.settings.MEMOS_PORT}";
           proxyWebsockets = true;
         };
       };
