@@ -49,6 +49,7 @@ in
           notes
           richdocuments
           tasks
+          user_oidc
           ;
       };
       extraAppsEnable = true;
