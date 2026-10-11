@@ -11,6 +11,8 @@ let
 
   serverHttpPort = 9500;
   serverMetricsPort = 9300;
+  workerHttpPort = 9501;
+  workerMetricsPort = 9301;
 
   commonEnvironment = {
     AUTHENTIK_POSTGRESQL__HOST = "/run/postgresql";
@@ -32,8 +34,8 @@ let
   };
 
   workerEnvironment = commonEnvironment // {
-    AUTHENTIK_LISTEN__HTTP = "127.0.0.1:${toString serverHttpPort}";
-    AUTHENTIK_LISTEN__METRICS = "127.0.0.1:${toString serverMetricsPort}";
+    AUTHENTIK_LISTEN__HTTP = "127.0.0.1:${toString workerHttpPort}";
+    AUTHENTIK_LISTEN__METRICS = "127.0.0.1:${toString workerMetricsPort}";
   };
 
   mkAuthentikSystemdService = role: environment: {
