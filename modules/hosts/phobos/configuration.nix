@@ -6,6 +6,7 @@
   imports = [
     ./hardware-configuration.nix
     ./servers/collabora.nix
+    ./servers/keycloak.nix
     ./servers/memos.nix
     ./servers/nextcloud.nix
   ];
