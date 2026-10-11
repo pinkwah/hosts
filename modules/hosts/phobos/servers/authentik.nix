@@ -1,12 +1,16 @@
-{ config, pkgs, lib, ... }:
+# https://wiki.nixos.org/wiki/Authentik
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 let
   domain = "auth.zohar.no";
   stateDir = "/var/lib/authentik";
 
   serverHttpPort = 9500;
   serverMetricsPort = 9300;
-  workerHttpPort = 9501;
-  workerMetricsPort = 9301;
 
   commonEnvironment = {
     AUTHENTIK_POSTGRESQL__HOST = "/run/postgresql";
@@ -16,6 +20,8 @@ let
     AUTHENTIK_LISTEN__TRUSTED_PROXY_CIDRS = "127.0.0.0/8,::1/128";
 
     AUTHENTIK_STORAGE__FILE__PATH = stateDir;
+
+    AUTHENTIK_SECRET_KEY = "file://${config.sops.secrets.authentik-secret.path}";
 
     AUTHENTIK_LOG_LEVEL = "info";
   };
@@ -55,9 +61,19 @@ let
     };
   };
 
-in {
+in
+{
+  sops.secrets = {
+    authentik-secret = {
+      mode = "0400";
+      path = "/etc/authentik-secret";
+      owner = "authentik";
+      group = "authentik";
+    };
+  };
+
   users = {
-    groups.authentik = {};
+    groups.authentik = { };
 
     users.authentik = {
       isSystemUser = true;
@@ -93,7 +109,6 @@ in {
     };
 
   };
-
 
   systemd.services = {
     authentik-server = mkAuthentikSystemdService "server" serverEnvironment;
