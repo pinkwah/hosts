@@ -32,7 +32,7 @@ keygen:
   ssh-keygen -t rsa -b 4096 -P "" -f key/ssh_host_rsa_key >/dev/null
   ssh-keygen -t ed25519 -P "" -f key/ssh_host_ed25519_key >/dev/null
   ssh-keygen -t ecdsa -P "" -f key/ssh_host_ecdsa_key >/dev/null
- 
+
   ssh-to-age -i key/ssh_host_ed25519_key.pub -o key/age
   echo "age: $(cat key/age)"
   echo
@@ -40,10 +40,6 @@ keygen:
   echo
   echo -e "\tsops updatekeys modules/hosts/[HOST]/secrets.yaml"
   echo
-
-# Deploy NixOS to an existing and configured host
-deploy $host: (copy host)
-  nixos-rebuild-ng switch --flake .#{{host}} --target-host root@{{host}} --build-host root@{{host}} --no-reexec
 
 # Copy NixOS configuration to a host without switching to it
 copy $host:

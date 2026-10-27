@@ -52,14 +52,14 @@
             devShells.default = pkgs.mkShell {
               packages = with pkgs; [
                 just
-                nh
-                nixos-rebuild-ng
+                # nh
+                # nixos-rebuild-ng
                 nixos-generators
-                hcloud
+                # hcloud
                 ssh-to-age
                 zstd
 
-                inputs.hcloud-upload-image.packages.${system}.default
+                # inputs.hcloud-upload-image.packages.${system}.default
                 inputs.deploy-rs.packages.${system}.default
               ];
 
@@ -81,7 +81,7 @@
 
         flake = {
           nixosConfigurations = {
-            phobos = import ./modules/hosts/phobos { inherit self inputs; };
+            phobos = import ./configs/phobos { inherit self inputs; };
           };
 
           deploy.nodes.phobos = {
