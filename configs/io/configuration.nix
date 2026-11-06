@@ -109,6 +109,7 @@ in
       isNormalUser = true;
       openssh.authorizedKeys.keys = authorizedKeys;
       shell = pkgs.fish;
+      extraGroups = [ "podman" ];
     };
   };
 
@@ -118,6 +119,14 @@ in
       settings = {
         PermitRootLogin = "prohibit-password";
       };
+    };
+  };
+
+  virtualisation = {
+    podman = {
+      enable = true;
+      dockerCompat = true;
+      defaultNetwork.settings.dns_enabled = true;
     };
   };
 
