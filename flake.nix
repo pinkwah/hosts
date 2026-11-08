@@ -30,6 +30,11 @@
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    katalog = {
+      url = "git+ssh://git@github.com/pinkwah/katalog";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
