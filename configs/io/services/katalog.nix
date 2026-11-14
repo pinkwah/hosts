@@ -37,7 +37,7 @@ let
     activeRecordEncryptionPrimaryKeyFile = "/var/lib/${name}/secrets/active-record-encryption-primary-key";
     secretKeyBaseFile = "/var/lib/${name}/secrets/secret-key-base";
     trustedProxy = "127.0.0.1";
-    enableUnixSocket = false;
+    enableUnixSocket = true;
 
     redis = {
       createLocally = true;
@@ -219,8 +219,26 @@ let
   #   )
   # ) cfg.sidekiqProcesses;
 
+  binScript = pkgs.writeShellScriptBin "${name}-rails" ''
+    if [[ "$(whoami)" != '${cfg.user}' ]]; then
+        sudo -u '${cfg.user}' "$0" "$@"
+        exit
+    fi
+
+    set -o allexport
+    ${lib.concatMapAttrsStringSep "\n" (name: value: "${name}=${lib.escapeShellArg value}") env}
+    source /var/lib/${name}/.secrets_env
+    set +o allexport
+
+    ${cfg.package}/bin/rails "$@"
+  '';
+
 in
 lib.mkMerge [
+  {
+    environment.systemPackages = [ binScript ];
+  }
+
   {
     systemd.targets.${name} = {
       description = "Target for all ${name} services";
@@ -337,12 +355,12 @@ lib.mkMerge [
         env
         // (
           if cfg.enableUnixSocket then
-            { SOCKET = "/run/${name}/rails.sock"; }
+            { SOCKET = "/run/${name}-web/rails.sock"; }
           else
             { PORT = toString cfg.webPort; }
         );
       serviceConfig = {
-        ExecStart = "${cfg.package}/bin/puma -C config/puma.rb";
+        ExecStart = "${cfg.package}/bin/puma -b unix:///run/${name}-web/rails.sock -C config/puma.rb";
         Restart = "always";
         RestartSec = 20;
         EnvironmentFile = [ "/var/lib/${name}/.secrets_env" ] ++ cfg.extraEnvFiles;
@@ -382,7 +400,7 @@ lib.mkMerge [
         locations."@proxy" = {
           proxyPass = (
             if cfg.enableUnixSocket then
-              "http://unix:/run/${name}/rails.sock"
+              "http://unix:/run/${name}-web/rails.sock"
             else
               "http://127.0.0.1:${toString cfg.webPort}"
           );
