@@ -19,14 +19,14 @@ let
     webPort = 55001;
     webProcesses = 2;
     webThreads = 5;
-    sidekiqPort = 55002;
-    sidekiqThreads = 25;
-    sidekiqProcesses = {
-      all = {
-        jobClasses = [ ];
-        threads = null;
-      };
-    };
+    # sidekiqPort = 55002;
+    # sidekiqThreads = 25;
+    # sidekiqProcesses = {
+    #   all = {
+    #     jobClasses = [ ];
+    #     threads = null;
+    #   };
+    # };
 
     vapidPublicKeyFile = "/var/lib/${name}/secrets/vapid-public-key";
     vapidPrivateKeyFile = "/var/lib/${name}/secrets/vapid-private-key";
@@ -37,7 +37,7 @@ let
     activeRecordEncryptionPrimaryKeyFile = "/var/lib/${name}/secrets/active-record-encryption-primary-key";
     secretKeyBaseFile = "/var/lib/${name}/secrets/secret-key-base";
     trustedProxy = "127.0.0.1";
-    enableUnixSocket = true;
+    enableUnixSocket = false;
 
     redis = {
       createLocally = true;
@@ -90,10 +90,11 @@ let
     WEB_CONCURRENCY = toString cfg.webProcesses;
     MAX_THREADS = toString cfg.webThreads;
 
-    DB_USER = cfg.database.user;
+    DATABASE_URL = "sqlite3:/var/lib/${name}/database.sqlite3";
+    CACHE_DATABASE_URL = "sqlite3:/var/lib/${name}/cache.sqlite3";
+    QUEUE_DATABASE_URL = "sqlite3:/var/lib/${name}/queue.sqlite3";
+    CABLE_DATABASE_URL = "sqlite3:/var/lib/${name}/cable.sqlite3";
 
-    DB_HOST = cfg.database.host;
-    DB_NAME = cfg.database.name;
     LOCAL_DOMAIN = cfg.localDomain;
     PAPERCLIP_ROOT_PATH = "/var/lib/${name}/public-system";
     PAPERCLIP_ROOT_URL = "/system";
@@ -173,50 +174,50 @@ let
     lib.optional databaseActuallyCreateLocally "postgresql.target"
     ++ lib.optional cfg.automaticMigrations "${name}-init-db.service";
 
-  sidekiqUnits = lib.attrsets.mapAttrs' (
-    name': processCfg:
-    lib.nameValuePair "${name}-sidekiq-${name'}" (
-      let
-        jobClassArgs = toString (map (c: "-q ${c}") processCfg.jobClasses);
-        jobClassLabel = toString ([ "" ] ++ processCfg.jobClasses);
-        threads = toString (if processCfg.threads == null then cfg.sidekiqThreads else processCfg.threads);
-      in
-      {
-        after = [
-          "network.target"
-          "${name}-init-dirs.service"
-        ]
-        ++ commonUnits;
-        requires = [ "${name}-init-dirs.service" ] ++ commonUnits;
-        description = "${name} sidekiq${jobClassLabel}";
-        wantedBy = [ "${name}.target" ];
-        environment = env // {
-          PORT = toString cfg.sidekiqPort;
-          DB_POOL = threads;
-        };
-        serviceConfig = {
-          ExecStart = "${cfg.package}/bin/sidekiq ${jobClassArgs} -c ${threads} -r ${cfg.package}";
-          Restart = "always";
-          RestartSec = 20;
-          EnvironmentFile = [ "/var/lib/${name}/.secrets_env" ] ++ cfg.extraEnvFiles;
-          WorkingDirectory = cfg.package;
-          LimitNOFILE = "1024000";
-          # System Call Filtering
-          SystemCallFilter = [
-            ("~" + lib.concatStringsSep " " systemCallsList)
-            "@chown"
-            "pipe"
-            "pipe2"
-          ];
-        }
-        // cfgService;
-        path = with pkgs; [
-          ffmpeg-headless
-          file
-        ];
-      }
-    )
-  ) cfg.sidekiqProcesses;
+  # sidekiqUnits = lib.attrsets.mapAttrs' (
+  #   name': processCfg:
+  #   lib.nameValuePair "${name}-sidekiq-${name'}" (
+  #     let
+  #       jobClassArgs = toString (map (c: "-q ${c}") processCfg.jobClasses);
+  #       jobClassLabel = toString ([ "" ] ++ processCfg.jobClasses);
+  #       threads = toString (if processCfg.threads == null then cfg.sidekiqThreads else processCfg.threads);
+  #     in
+  #     {
+  #       after = [
+  #         "network.target"
+  #         "${name}-init-dirs.service"
+  #       ]
+  #       ++ commonUnits;
+  #       requires = [ "${name}-init-dirs.service" ] ++ commonUnits;
+  #       description = "${name} sidekiq${jobClassLabel}";
+  #       wantedBy = [ "${name}.target" ];
+  #       environment = env // {
+  #         PORT = toString cfg.sidekiqPort;
+  #         DB_POOL = threads;
+  #       };
+  #       serviceConfig = {
+  #         ExecStart = "${cfg.package}/bin/sidekiq ${jobClassArgs} -c ${threads} -r ${cfg.package}";
+  #         Restart = "always";
+  #         RestartSec = 20;
+  #         EnvironmentFile = [ "/var/lib/${name}/.secrets_env" ] ++ cfg.extraEnvFiles;
+  #         WorkingDirectory = cfg.package;
+  #         LimitNOFILE = "1024000";
+  #         # System Call Filtering
+  #         SystemCallFilter = [
+  #           ("~" + lib.concatStringsSep " " systemCallsList)
+  #           "@chown"
+  #           "pipe"
+  #           "pipe2"
+  #         ];
+  #       }
+  #       // cfgService;
+  #       path = with pkgs; [
+  #         ffmpeg-headless
+  #         file
+  #       ];
+  #     }
+  #   )
+  # ) cfg.sidekiqProcesses;
 
 in
 lib.mkMerge [
@@ -229,6 +230,7 @@ lib.mkMerge [
 
     systemd.services."${name}-init-dirs" = {
       script = ''
+        set +x
         umask 077
 
         if ! test -d /var/cache/${name}/precompile; then
@@ -250,14 +252,8 @@ lib.mkMerge [
           mkdir -p $(dirname ${cfg.secretKeyBaseFile})
           bin/bundle exec rails secret > ${cfg.secretKeyBaseFile}
         fi
-        if ! test -f ${cfg.vapidPrivateKeyFile}; then
-          mkdir -p $(dirname ${cfg.vapidPrivateKeyFile}) $(dirname ${cfg.vapidPublicKeyFile})
-          keypair=$(bin/rake webpush:generate_keys)
-          echo $keypair | grep --only-matching "Private -> [^ ]\+" | sed 's/^Private -> //' > ${cfg.vapidPrivateKeyFile}
-          echo $keypair | grep --only-matching "Public -> [^ ]\+" | sed 's/^Public -> //' > ${cfg.vapidPublicKeyFile}
-        fi
 
-        cat > /var/lib/${name}/.secrets_env <<EOF
+        cat > /var/lib/${name}/.secrets_env <<-EOF
         ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY="$(cat ${cfg.activeRecordEncryptionDeterministicKeyFile})"
         ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT="$(cat ${cfg.activeRecordEncryptionKeyDerivationSaltFile})"
         ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY="$(cat ${cfg.activeRecordEncryptionPrimaryKeyFile})"
@@ -295,45 +291,15 @@ lib.mkMerge [
     };
 
     systemd.services."${name}-init-db" = lib.mkIf cfg.automaticMigrations {
-      script =
-        lib.optionalString (!databaseActuallyCreateLocally) ''
-          umask 077
-          export PGPASSWORD="$(cat '${cfg.database.passwordFile}')"
-        ''
-        + ''
-          result="$(psql -t --csv -c \
-              "select count(*) from pg_class c \
-              join pg_namespace s on s.oid = c.relnamespace \
-              where s.nspname not in ('pg_catalog', 'pg_toast', 'information_schema') \
-              and s.nspname not like 'pg_temp%';")" || error_code=$?
-          if [ "''${error_code:-0}" -ne 0 ]; then
-            echo "Failure checking if database is seeded. psql gave exit code $error_code"
-            exit "$error_code"
-          fi
-          if [ "$result" -eq 0 ]; then
-            echo "Seeding database"
-            SAFETY_ASSURED=1 rails db:schema:load
-            rails db:seed
-          else
-            echo "Migrating database (this might be a noop)"
-            rails db:migrate
-          fi
-        ''
-        + lib.optionalString (!databaseActuallyCreateLocally) ''
-          unset PGPASSWORD
-        '';
+      script = ''
+        echo "Migrating database (this might be a noop)"
+        rails db:prepare
+      '';
       path = [
         cfg.package
         (if databaseActuallyCreateLocally then config.services.postgresql.package else pkgs.postgresql)
       ];
-      environment =
-        env
-        // lib.optionalAttrs (!databaseActuallyCreateLocally) {
-          PGHOST = cfg.database.host;
-          PGPORT = toString cfg.database.port;
-          PGDATABASE = cfg.database.name;
-          PGUSER = cfg.database.user;
-        };
+      environment = env;
       serviceConfig = {
         Type = "oneshot";
         EnvironmentFile = [ "/var/lib/${name}/.secrets_env" ] ++ cfg.extraEnvFiles;
@@ -456,7 +422,7 @@ lib.mkMerge [
       (lib.mkIf (cfg.user == name) {
         ${name} = {
           isSystemUser = true;
-          home = cfg.package;
+          home = "/var/lib/${cfg.user}";
           inherit (cfg) group;
         };
       })
@@ -469,8 +435,8 @@ lib.mkMerge [
     users.groups.${cfg.group}.members = lib.optional cfg.configureNginx config.services.nginx.user;
   }
   {
-    systemd.services = lib.mkMerge [
-      sidekiqUnits
-    ];
+    # systemd.services = lib.mkMerge [
+    #   sidekiqUnits
+    # ];
   }
 ]

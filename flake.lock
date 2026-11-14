@@ -141,11 +141,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1791021130,
-        "narHash": "sha256-aTjUNENCh7dQjjQeZJ1RhwkdXc2Fz705LOiatafhWhY=",
+        "lastModified": 1794167451,
+        "narHash": "sha256-+UT3H0WHlOu+p/gJ8Y2ROrQSq9R9V8CtOGwy52Crf6o=",
         "ref": "refs/heads/main",
-        "rev": "1e5b96d70cb2a7e898733d03d8a787dca02d061b",
-        "revCount": 21,
+        "rev": "de880b6fb75cb5354f9fa45c4615dde7c3118e47",
+        "revCount": 23,
         "type": "git",
         "url": "ssh://git@github.com/pinkwah/katalog"
       },
