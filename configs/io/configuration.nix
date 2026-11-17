@@ -15,13 +15,17 @@ let
   );
   services = map (name: ./services/${name}) serviceNames;
 
+  ruleNames = lib.attrNames (lib.filterAttrs (_: value: value == "regular") (lib.readDir ./rules));
+  rules = map (name: ./rules/${name}) ruleNames;
+
 in
 {
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
   ]
-  ++ services;
+  ++ services
+  ++ rules;
 
   nix = {
     settings = {
@@ -104,6 +108,7 @@ in
     nftables.enable = true;
 
     firewall = {
+      enable = true;
       allowedTCPPorts = [
         80
         443
@@ -174,6 +179,10 @@ in
           }
         ];
       };
+    };
+
+    tailscale = {
+      enable = true;
     };
   };
 

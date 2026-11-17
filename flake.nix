@@ -100,7 +100,7 @@
           };
 
           deploy.nodes.io = {
-            hostname = "io.hosts.zohar.no";
+            hostname = "io.tail0f913d.ts.net";
             profiles.system = {
               sshUser = "root";
               user = "root";
