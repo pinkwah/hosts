@@ -8,6 +8,8 @@ let
   authorizedKeys = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIANc9pIqHgW3scSpJl9P1uRJy5GR1qHMf/hWLchzv7za"
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK7wrK4sA6acnwKJ9D6OUMajkvaax9+3PyWUmTxrtnHx"
+    # Pixel 8 Pro
+    "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBDzjXoxdThLE4yfNUdZWs7u3+vbPuUCZBt8ERAXDdiSahqHjHo6VPdJGSIGLFssq/D9sCiI4v41jLu935GxYRpE="
   ];
 
   serviceNames = lib.attrNames (
