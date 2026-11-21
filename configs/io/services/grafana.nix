@@ -14,6 +14,12 @@ in
       enable = true;
 
       settings = {
+        database = {
+          type = "postgres";
+          host = "/run/postgresql";
+          user = "grafana";
+        };
+
         security = {
           secret_key = "SW2YcwTIb9zpOOhoPsMm";
         };
@@ -36,6 +42,18 @@ in
         proxyWebsockets = true;
         recommendedProxySettings = true;
       };
+    };
+
+    postgresql = {
+      enable = true;
+
+      ensureDatabases = [ "grafana" ];
+      ensureUsers = [
+        {
+          name = "grafana";
+          ensureDBOwnership = true;
+        }
+      ];
     };
   };
 
