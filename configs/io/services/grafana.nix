@@ -9,7 +9,74 @@ let
 
 in
 {
+  environment.etc."alloy/config.alloy" = {
+    enable = true;
+    user = "alloy";
+    group = "alloy";
+    text = ''
+      loki.relabel "journal" {
+        forward_to = []
+
+        rule {
+          source_labels = ["__journal__systemd_unit"]
+          target_label = "unit"
+        }
+
+        rule {
+          source_labels = ["__journal__priority_keyword"]
+          target_label = "priority"
+        }
+
+        rule {
+          source_labels = ["__journal__hostname"]
+          target_label = "hostname"
+        }
+      }
+
+      loki.source.journal "host" {
+        path = "/var/log/journal"
+        max_age = "12h"
+        relabel_rules = loki.relabel.journal.rules
+        labels = { job = "systemd-journal" }
+        forward_to = [loki.process.journal.receiver]
+      }
+
+      loki.process "journal" {
+        // Drop high-volume units that rarely carry actionable signal in a
+        // generic dev/ops dashboard. Tune this list to your environment.
+        stage.match {
+        	selector = `{unit=~"systemd-logind.service|systemd-tmpfiles-clean.service|cron.service"}`
+        	action   = "drop"
+        }
+
+        // Drop low-priority entries (info / debug). Keep notice and above.
+        // Adjust if you want to keep info messages.
+        stage.match {
+        	selector = `{priority=~"info|debug"}`
+        	action   = "drop"
+        }
+
+        forward_to = [loki.write.local.receiver]
+      }
+
+      loki.write "local" {
+        endpoint {
+          url = "http://127.0.0.1:3100/loki/api/v1/push"
+        }
+      }
+    '';
+  };
+
+  users.groups.alloy.members = [
+    "adm"
+    "systemd-journal"
+  ];
+
   services = {
+    alloy = {
+      enable = true;
+    };
+
     loki = {
       enable = true;
 
