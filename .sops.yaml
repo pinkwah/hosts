@@ -1,10 +1,17 @@
 keys:
   - &admin_zohar 1F9D38407F1BFAD1FE3C78F4A32FDE70EBD85C34
   - &server_hetzner-fi-1 age1t2j8xtzcqm89mp2amqw4ekksymh79a36ghxejvpz6dzqpuu5funqrcffv7
+  - &server_hetzner-fi-2 age19kga9t33f4mxk2pyn588xq709rwpkdwnc5865sd0pxwckqzq2d2smxy44c
 
 creation_rules:
-  - path_regex: modules\/.*\/secrets\.yaml$
+  - path_regex: configs\/phobos\/secrets\.yaml$
     pgp:
       - *admin_zohar
     age:
       - *server_hetzner-fi-1
+
+  - path_regex: configs\/io\/secrets\.yaml$
+    pgp:
+      - *admin_zohar
+    age:
+      - *server_hetzner-fi-2

@@ -194,5 +194,7 @@ in
     };
   };
 
+  sops.defaultSopsFile = ./secrets.yaml;
+
   system.stateVersion = "26.05";
 }
