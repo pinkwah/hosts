@@ -160,29 +160,11 @@ in
   # List packages installed in system profile.
   # You can use https://search.nixos.org/ to find more packages (and options).
   environment.systemPackages = with pkgs; [
-    borgbackup
     vim
     wget
   ];
 
   services = {
-    borgmatic = {
-      enable = true;
-
-      configurations = {
-        zfs = { };
-      };
-
-      settings = {
-        repositories = [
-          {
-            label = "hetzner";
-            path = "ssh://u503778-sub1@u503778-sub1.your-storagebox.de:23/./borg";
-          }
-        ];
-      };
-    };
-
     tailscale = {
       enable = true;
     };
